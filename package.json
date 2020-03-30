@@ -1,0 +1,12 @@
+{
+  "author": "",
+  "dependencies": {
+    "com.unity.entities": "0.8.0-preview.8"
+  },
+  "deprecated": false,
+  "description": "Helper functions to assist with manually creating ComponentSystems",
+  "displayName": "Sibz: World System Helpers",
+  "license": "ISC",
+  "name": "com.sibz.world-system-helpers",
+  "version": "1.0.3"
+}

@@ -17,6 +17,7 @@ namespace Sibz.WorldSystemHelpers.Tests
             World.ImportSystemsWithAttribute<MyTestAttribute, TestSystemGroup>();
             Assert.IsNotNull(World.GetExistingSystem<TestSystem>());
         }
+
         [Test]
         public void WhenPartiallyGeneric_ShouldCreateSystem()
         {
@@ -30,16 +31,38 @@ namespace Sibz.WorldSystemHelpers.Tests
             World.ImportSystemsWithAttribute(typeof(MyTestAttribute), typeof(TestSystemGroup));
             Assert.IsNotNull(World.GetExistingSystem<TestSystem>());
         }
+
+        [Test]
+        public void ShouldCreateInDefaultGroup()
+        {
+            World.CreateSystem<TestSystemGroup2>();
+            World.ImportSystemsWithAttribute<MyTestAttribute, TestSystemGroup>();
+            World.GetExistingSystem<TestSystemGroup>().Update();
+            Assert.IsTrue(World.GetExistingSystem<TestSystem>().Updated);
+        }
+
+        [Test]
+        public void ShouldUpdateInUpdateInGroupAttributeGroup()
+        {
+            World.CreateSystem<TestSystemGroup2>();
+            World.ImportSystemsWithAttribute<MyTestAttribute, TestSystemGroup2>();
+            World.GetExistingSystem<TestSystemGroup>().Update();
+            Assert.IsTrue(World.GetExistingSystem<TestSystem3>().Updated);
+        }
+
     }
+
 
     public class ImportSystemsFromList : TestBase
     {
         private IEnumerable<Type> systems;
+
         [SetUp]
         public void SetUpList()
         {
             systems = new[] {typeof(TestSystem)};
         }
+
         [Test]
         public void WhenGeneric_ShouldCreateSystems()
         {
@@ -52,6 +75,24 @@ namespace Sibz.WorldSystemHelpers.Tests
         {
             World.ImportSystemsFromList(systems, typeof(TestSystemGroup));
             Assert.IsNotNull(World.GetExistingSystem<TestSystem>());
+        }
+
+        [Test]
+        public void ShouldCreateInDefaultGroup()
+        {
+            World.CreateSystem<TestSystemGroup2>();
+            World.ImportSystemsFromList<TestSystemGroup>(new Type[] { typeof(TestSystem)});
+            World.GetExistingSystem<TestSystemGroup>().Update();
+            Assert.IsTrue(World.GetExistingSystem<TestSystem>().Updated);
+        }
+
+        [Test]
+        public void ShouldUpdateInUpdateInGroupAttributeGroup()
+        {
+            World.CreateSystem<TestSystemGroup2>();
+            World.ImportSystemsFromList<TestSystemGroup2>(new Type[] { typeof(TestSystem3)});
+            World.GetExistingSystem<TestSystemGroup>().Update();
+            Assert.IsTrue(World.GetExistingSystem<TestSystem3>().Updated);
         }
     }
 
@@ -99,6 +140,13 @@ namespace Sibz.WorldSystemHelpers.Tests
             Assert.IsNotNull(World.GetExistingSystem<TestSystem3>());
         }
 
+        [Test]
+        public void WhenGroupExist_ShouldAddToThatGroup()
+        {
+            World.TryCreateInGroupUsingUpdateInGroupAttribute(typeof(TestSystem3));
+            TestGroup.Update();
+            Assert.IsTrue(World.GetExistingSystem<TestSystem3>().Updated);
+        }
     }
 
     public class TryGetExistingSystem : WithSystemTypeTests
@@ -159,6 +207,7 @@ namespace Sibz.WorldSystemHelpers.Tests
             LogAssert.Expect(LogType.Warning, new Regex(".*"));
         }
     }
+
     public class CreateInGroup : WithSystemTypeTests
     {
         protected override void ThrowMethod(Type type)
@@ -170,7 +219,7 @@ namespace Sibz.WorldSystemHelpers.Tests
         public void WhenComponentSystemIsNull_ShouldThrowArgumentNullException()
         {
             CatchWithParamName<ArgumentNullException>(() => { World.CreateInGroup(typeof(TestSystem), null); },
-                typeof(WorldExtensions).GetMethod(nameof(WorldExtensions.CreateInGroup))?.GetParameters().Last().Name );
+                typeof(WorldExtensions).GetMethod(nameof(WorldExtensions.CreateInGroup))?.GetParameters().Last().Name);
         }
 
         [Test]
@@ -220,7 +269,6 @@ namespace Sibz.WorldSystemHelpers.Tests
         {
             CatchWithParamName<ArgumentException>(() => { ThrowMethod(typeof(string)); }, "systemType");
         }
-
     }
 
     public abstract class TestBase
@@ -267,6 +315,9 @@ namespace Sibz.WorldSystemHelpers.Tests
     public class TestSystemGroup : ComponentSystemGroup
     {
     }
+    public class TestSystemGroup2 : ComponentSystemGroup
+    {
+    }
 
     [MyTest]
     public class TestSystem : ComponentSystem
@@ -286,10 +337,11 @@ namespace Sibz.WorldSystemHelpers.Tests
 
         protected override void OnUpdate()
         {
-            UpdatedAfterSystem1 = World.GetExistingSystem<TestSystem>().Updated;
+            UpdatedAfterSystem1 =  World.GetExistingSystem<TestSystem>()?.Updated ?? false;
         }
     }
 
+    [MyTest]
     [UpdateInGroup(typeof(TestSystemGroup))]
     public class TestSystem3 : ComponentSystem
     {
@@ -303,7 +355,5 @@ namespace Sibz.WorldSystemHelpers.Tests
 
     public class MyTestAttribute : Attribute
     {
-
     }
-
 }

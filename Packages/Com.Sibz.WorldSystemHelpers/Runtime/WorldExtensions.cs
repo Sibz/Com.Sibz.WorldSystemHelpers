@@ -40,15 +40,16 @@ namespace Sibz.WorldSystemHelpers
         /// <param name="world"></param>
         /// <param name="list"></param>
         /// <param name="defaultGroup"></param>
+        /// <param name="remap">Remap target update in group attribute</param>
         /// <typeparam name="TDefaultGroup"></typeparam>
-        public static void ImportSystemsFromList<TDefaultGroup>(this World world, IEnumerable<Type> list)
-            where TDefaultGroup : ComponentSystemGroup => ImportSystemsFromList(world, list, typeof(TDefaultGroup));
-        public static void ImportSystemsFromList(this World world, IEnumerable<Type> systems, Type defaultGroup)
+        public static void ImportSystemsFromList<TDefaultGroup>(this World world, IEnumerable<Type> list, Dictionary<Type, Type> remap = null)
+            where TDefaultGroup : ComponentSystemGroup => ImportSystemsFromList(world, list, typeof(TDefaultGroup), remap);
+        public static void ImportSystemsFromList(this World world, IEnumerable<Type> systems, Type defaultGroup, Dictionary<Type, Type> remap = null)
         {
             var array = systems.ToArray();
             foreach (Type systemType in array)
             {
-                if (world.TryCreateInGroupUsingUpdateInGroupAttribute(systemType))
+                if (world.TryCreateInGroupUsingUpdateInGroupAttribute(systemType, remap))
                 {
                     continue;
                 }
@@ -67,7 +68,7 @@ namespace Sibz.WorldSystemHelpers
         /// <param name="world"></param>
         /// <param name="systemType">Type of the system to create and insert</param>
         /// <returns>true if inserted, false if not</returns>
-        public static bool TryCreateInGroupUsingUpdateInGroupAttribute(this World world, Type systemType)
+        public static bool TryCreateInGroupUsingUpdateInGroupAttribute(this World world, Type systemType, Dictionary<Type, Type> remap = null)
         {
             ThrowIfNotComponentSystem(systemType);
 
@@ -77,14 +78,21 @@ namespace Sibz.WorldSystemHelpers
                 return false;
             }
 
-            if (world.TryGetExistingSystem(att.GroupType, out ComponentSystemGroup cs))
+            Type groupType = att.GroupType;
+            if (!(remap is null) && remap.ContainsKey(groupType))
+            {
+                groupType = remap[groupType];
+            }
+
+            if (world.TryGetExistingSystem(groupType, out ComponentSystemGroup cs))
             {
                 world.CreateInGroup(systemType, cs);
                 return true;
             }
 
+            string groupTypeRemapped = groupType != att.GroupType ? $"(Remapped from {att.GroupType.Name}) " : "";
             Debug.LogWarning(
-                $"Unable to update system {systemType.Name} in group {att.GroupType.Name} as it does not exist.");
+                $"Unable to update system {systemType.Name} in group {groupType.Name} {groupTypeRemapped}as it does not exist.");
 
             return false;
         }

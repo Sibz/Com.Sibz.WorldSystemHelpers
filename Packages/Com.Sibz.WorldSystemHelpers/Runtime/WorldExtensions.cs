@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,15 +16,16 @@ namespace Sibz.WorldSystemHelpers
         /// <param name="world"></param>
         /// <typeparam name="TAttribute">Attribute type, MUST be in the assembly with the systems required</typeparam>
         /// <typeparam name="TDefaultGroup"></typeparam>
+        [Obsolete]
         public static void ImportSystemsWithAttribute<TAttribute, TDefaultGroup>(this World world)
             where TAttribute : Attribute
             where TDefaultGroup : ComponentSystemGroup=>
             world.ImportSystemsWithAttribute(typeof(TAttribute), typeof(TDefaultGroup));
-
+        [Obsolete]
         public static void ImportSystemsWithAttribute<TDefaultGroup>(this World world, Type attr)
             where TDefaultGroup : ComponentSystemGroup =>
             ImportSystemsWithAttribute(world, attr, typeof(TDefaultGroup));
-
+        [Obsolete]
         public static void ImportSystemsWithAttribute(this World world, Type attr, Type defaultGroup)
         {
             var systems = Assembly

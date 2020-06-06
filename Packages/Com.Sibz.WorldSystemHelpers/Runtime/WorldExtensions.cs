@@ -16,15 +16,16 @@ namespace Sibz.WorldSystemHelpers
         /// <param name="world"></param>
         /// <typeparam name="TAttribute">Attribute type, MUST be in the assembly with the systems required</typeparam>
         /// <typeparam name="TDefaultGroup"></typeparam>
+        [Obsolete]
         public static void ImportSystemsWithAttribute<TAttribute, TDefaultGroup>(this World world)
             where TAttribute : Attribute
             where TDefaultGroup : ComponentSystemGroup=>
             world.ImportSystemsWithAttribute(typeof(TAttribute), typeof(TDefaultGroup));
-
+        [Obsolete]
         public static void ImportSystemsWithAttribute<TDefaultGroup>(this World world, Type attr)
             where TDefaultGroup : ComponentSystemGroup =>
             ImportSystemsWithAttribute(world, attr, typeof(TDefaultGroup));
-
+        [Obsolete]
         public static void ImportSystemsWithAttribute(this World world, Type attr, Type defaultGroup)
         {
             var systems = Assembly
@@ -46,15 +47,43 @@ namespace Sibz.WorldSystemHelpers
             where TDefaultGroup : ComponentSystemGroup => ImportSystemsFromList(world, list, typeof(TDefaultGroup), remap);
         public static void ImportSystemsFromList(this World world, IEnumerable<Type> systems, Type defaultGroup, Dictionary<Type, Type> remap = null)
         {
-            var array = systems.ToArray();
+            if (world.GetExistingSystem(defaultGroup) is null)
+            {
+                Debug.LogError($"Unable to import systems as default group {defaultGroup.Name} does not exist");
+                return;
+            }
+
+            remap = remap ?? new Dictionary<Type, Type>();
+            Type[] array = systems.ToArray();
+            //List<ComponentSystemBase> componentSystems = new List<ComponentSystemBase>();
+            List<ComponentSystemGroup> groups = new List<ComponentSystemGroup>();
             foreach (Type systemType in array)
             {
-                if (world.TryCreateInGroupUsingUpdateInGroupAttribute(systemType, remap))
+                if (world.CreateSystem(systemType) is ComponentSystemBase componentSystem)
                 {
-                    continue;
-                }
+                    //componentSystems.Add(componentSystem);
+                    Type groupType = defaultGroup;
+                    if (systemType.GetCustomAttribute<UpdateInGroupAttribute>() is UpdateInGroupAttribute att)
+                    {
+                        groupType = remap.ContainsKey(att.GroupType) ? remap[att.GroupType] : att.GroupType;
+                    }
 
-                world.TryCreateInGroup(systemType, defaultGroup);
+                    if (! (world.GetExistingSystem(groupType) is ComponentSystemGroup group))
+                    {
+                        Debug.LogError($"Unable to add system {systemType.Name} to group {groupType.Name} as group does not exist");
+                        continue;
+                    }
+                    group.AddSystemToUpdateList(componentSystem);
+                    if (!groups.Contains(group))
+                    {
+                        groups.Add(@group);
+                    }
+                }
+            }
+
+            foreach (ComponentSystemGroup componentSystemGroup in groups)
+            {
+                componentSystemGroup.SortSystemUpdateList();
             }
         }
 
@@ -156,7 +185,6 @@ namespace Sibz.WorldSystemHelpers
             {
                 throw new ArgumentNullException(nameof(componentSystemGroup));
             }
-
             componentSystemGroup.AddSystemToUpdateList(world.CreateSystem(systemType));
             //componentSystemGroup.SortSystemUpdateList();
         }

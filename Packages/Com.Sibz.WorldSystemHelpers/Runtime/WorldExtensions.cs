@@ -158,7 +158,7 @@ namespace Sibz.WorldSystemHelpers
             }
 
             componentSystemGroup.AddSystemToUpdateList(world.CreateSystem(systemType));
-            componentSystemGroup.SortSystemUpdateList();
+            //componentSystemGroup.SortSystemUpdateList();
         }
 
         /// <summary>

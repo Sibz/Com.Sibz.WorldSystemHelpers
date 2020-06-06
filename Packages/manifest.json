@@ -9,10 +9,10 @@
     }
   ],
   "dependencies": {
-    "com.unity.ide.rider": "1.2.1",
-    "com.unity.scriptablebuildpipeline": "1.6.5-preview",
+    "com.unity.ide.rider": "2.0.2",
+    "com.unity.scriptablebuildpipeline": "1.7.2",
     "com.unity.subsystemregistration": "1.0.6",
-    "com.unity.test-framework": "1.1.13",
+    "com.unity.test-framework": "1.1.14",
     "com.unity.testtools.codecoverage": "0.2.3-preview",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",

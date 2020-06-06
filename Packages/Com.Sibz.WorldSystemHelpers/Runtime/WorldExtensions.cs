@@ -81,10 +81,10 @@ namespace Sibz.WorldSystemHelpers
                 }
             }
 
-            foreach (ComponentSystemGroup componentSystemGroup in groups)
+            /*foreach (ComponentSystemGroup componentSystemGroup in groups)
             {
                 componentSystemGroup.SortSystemUpdateList();
-            }
+            }*/
         }
 
 

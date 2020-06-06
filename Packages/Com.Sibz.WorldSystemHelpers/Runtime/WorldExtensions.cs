@@ -186,7 +186,7 @@ namespace Sibz.WorldSystemHelpers
                 throw new ArgumentNullException(nameof(componentSystemGroup));
             }
             componentSystemGroup.AddSystemToUpdateList(world.CreateSystem(systemType));
-            componentSystemGroup.SortSystemUpdateList();
+            //componentSystemGroup.SortSystemUpdateList();
         }
 
         /// <summary>
